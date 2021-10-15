@@ -11,7 +11,18 @@ import asyncore_epoll
 from sys import platform
 from email.parser import Parser
 
-logging.basicConfig(level=logging.DEBUG,
+
+op = OptionParser()
+op.add_option("-w", "--worker", action="store", type=str, help="Setup worker count",
+                    default=2)
+op.add_option("-g", "--logdir", action="store", type=str, help="From where will be processed logs",
+                    default='.')
+op.add_option("-l", "--log", action="store", type=str, help="Log filename.", default="app_webserver.log")
+(opts, args) = op.parse_args()
+
+logging.basicConfig(filename=opts.log,
+                    filemode='w',
+                    level=logging.DEBUG,
                     format="%(created)-15s %(msecs)d %(levelname)8s %(thread)d %(name)s %(message)s")
 log = logging.getLogger(__name__)
 
@@ -357,18 +368,6 @@ def worker():
 
 
 def main():
-    op = OptionParser()
-    op.add_option("-w", "--worker", action="store", type=str, help="Setup worker count",
-                    default=2)
-    op.add_option("-g", "--logdir", action="store", type=str, help="From where will be processed logs",
-                    default='.')
-    op.add_option("-l", "--log", action="store", type=str, help="Log filename.", default="app_webserver.log")
-    (opts, args) = op.parse_args()
-    logging.basicConfig(
-            filemode='w',
-            format='[%(asctime)s] %(levelname).1s %(message)s',
-            datefmt='%Y.%m.%d %H:%M:%S',
-            level=logging.DEBUG)
 
     workers = [mp.Process(target=worker) for i in range(opts.worker)]
 
