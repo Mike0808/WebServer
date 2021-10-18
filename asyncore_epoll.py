@@ -376,13 +376,13 @@ class dispatcher:
         self._fileno = sock.fileno()
         self.add_channel(map)
 
-    def set_reuse_addr(self):
+    def set_reuse_port(self):
         # try to re-use a server port if possible
         try:
             self.socket.setsockopt(
-                socket.SOL_SOCKET, socket.SO_REUSEADDR,
+                socket.SOL_SOCKET, socket.SO_REUSEPORT,
                 self.socket.getsockopt(socket.SOL_SOCKET,
-                                       socket.SO_REUSEADDR) | 1
+                                       socket.SO_REUSEPORT) | 1
             )
         except socket.error:
             pass

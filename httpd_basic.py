@@ -103,7 +103,7 @@ class EchoHandler(asyncore_epoll.dispatcher):
         if data:
             log.debug("got data")
             self.buffer += data
-            if self.buffer.endswith(b'\r\n') or self.buffer.endswith(b'\n'):
+            if self.buffer.endswith(b'\r\n\r\n'):
                 self.is_writable = True  # sth to send back now
                 self.is_readable = False
         else:
@@ -112,14 +112,13 @@ class EchoHandler(asyncore_epoll.dispatcher):
     def handle_write(self):
         log.debug("handle_write")
         message = self._processor(self.buffer)
+        content_length = len(message)
         if message:
-            sent = self.send(message)
-            # if sent < content_length:
-            #     sent += self.send(message[sent:])
-            # else:
-            #     self.is_writable = False
+            while len(message) != 0:
+                sent = self.send(message)
+                message = message[sent:]
             log.debug("sent data")
-            message = message[sent:]
+
         else:
             log.debug("nothing to send")
         if len(message) == 0:
@@ -144,7 +143,7 @@ class EchoHandler(asyncore_epoll.dispatcher):
             req_header = http_parse_header(header_alone)
             method, target, ver = http_parse_request_line(req)
             file_name = http_parse_file_name(unquote(target))
-            path = os.path.join("./", document_root, file_name)
+            path = check_for_long_path(os.path.join("./", document_root, file_name), document_root)
             ext = get_filename_ext(path)
             http_status_error_response(method, target, ver, path, ext)
             content_type = http_content_type(ext)
@@ -165,6 +164,12 @@ class EchoHandler(asyncore_epoll.dispatcher):
                 logging.error(
                     "ERROR Occured status - 405, reason - Method Not Implemented, date - {}".format(date))
             return err.error_content()
+
+
+def check_for_long_path(path, document_root):
+    if re.findall(r'/\.\.', unquote(path)):
+        return document_root
+    return path
 
 
 def http_body_gen(path, content_type):
@@ -256,6 +261,7 @@ def http_parse_request_line(req):
     return method.lower(), target, ver
 
 
+
 def http_status_error_response(method, target, ver, path, ext):
     """
     Error validator
@@ -264,8 +270,7 @@ def http_status_error_response(method, target, ver, path, ext):
         raise HTTPError(505, 'HTTP Version Not Supported')
     if method not in ['get', 'head']:
         raise HTTPError(405, 'Method Not Allowed')
-    if re.findall(r'/\.\.', unquote(target)):
-        raise HTTPError(400, 'Bad request', 'Too long path name')
+
     if not os.path.exists(path):
         raise HTTPError(404, 'Not Found')
     if ext not in ACC_MIME:
@@ -301,7 +306,7 @@ class HTTPError(Exception):
 
 
 class EchoServer(asyncore_epoll.dispatcher):
-    _allow_reuse_address = True
+    _allow_reuse_port = True
     request_queue_size = 5
 
     def __init__(self, address, handlerClass=EchoHandler):
@@ -311,8 +316,8 @@ class EchoServer(asyncore_epoll.dispatcher):
         asyncore_epoll.dispatcher.__init__(self)
         self.create_socket()
 
-        if self._allow_reuse_address:
-            self.set_reuse_addr()
+        if self._allow_reuse_port:
+            self.set_reuse_port()
 
         self.server_bind()
         self.server_activate()
@@ -368,12 +373,13 @@ def worker():
 
 
 def main():
-
     workers = [mp.Process(target=worker) for i in range(opts.worker)]
 
     for p in workers:
         p.start()
+    for p in workers:
         p.join()
+
 
 if __name__ == '__main__':
     main()
