@@ -378,7 +378,6 @@ def worker():
 
 def main():
     workers = [mp.Process(target=worker, daemon=True) for i in range(int(opts.worker))]
-    # workers = [th.Thread(target=worker) for i in range(int(opts.worker))]
     for p in workers:
         p.start()
     for p in workers:
