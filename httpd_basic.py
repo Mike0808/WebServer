@@ -5,6 +5,7 @@ import re
 import time
 from datetime import datetime
 import multiprocessing as mp
+import threading as th
 from optparse import OptionParser
 from urllib.parse import unquote
 import asyncore_epoll
@@ -14,7 +15,7 @@ from email.parser import Parser
 
 op = OptionParser()
 op.add_option("-w", "--worker", action="store", type=str, help="Setup worker count",
-                    default=2)
+                    default=10)
 op.add_option("-g", "--logdir", action="store", type=str, help="From where will be processed logs",
                     default='.')
 op.add_option("-l", "--log", action="store", type=str, help="Log filename.", default="app_webserver.log")
@@ -143,7 +144,7 @@ class EchoHandler(asyncore_epoll.dispatcher):
             req_header = http_parse_header(header_alone)
             method, target, ver = http_parse_request_line(req)
             file_name = http_parse_file_name(unquote(target))
-            path = check_for_long_path(os.path.join("./", document_root, file_name), document_root)
+            path = check_for_long_path(os.path.join(file_name), document_root)
             ext = get_filename_ext(path)
             http_status_error_response(method, target, ver, path, ext)
             content_type = http_content_type(ext)
@@ -167,9 +168,12 @@ class EchoHandler(asyncore_epoll.dispatcher):
 
 
 def check_for_long_path(path, document_root):
-    if re.findall(r'/\.\.', unquote(path)):
-        return document_root
-    return path
+    abs_path = os.path.abspath(path)
+    base_path = os.path.abspath(document_root) if document_root else os.path.abspath('.')
+    path_join = os.path.join(base_path, abs_path)
+    if base_path in path_join:
+        return path_join
+    return document_root
 
 
 def http_body_gen(path, content_type):
@@ -373,8 +377,8 @@ def worker():
 
 
 def main():
-    workers = [mp.Process(target=worker) for i in range(opts.worker)]
-
+    workers = [mp.Process(target=worker, daemon=True) for i in range(int(opts.worker))]
+    # workers = [th.Thread(target=worker) for i in range(int(opts.worker))]
     for p in workers:
         p.start()
     for p in workers:
