@@ -28,44 +28,39 @@ Server Software:        localhost:8080
 Server Hostname:        localhost
 Server Port:            8080
 Document Path:          /
-Document Length:        446 bytes
-Concurrency Level:      100
-Time taken for tests:   326.584 seconds
+Document Length:        36 bytes
+Concurrency Level:      5
+Time taken for tests:   111.930 seconds
 Complete requests:      50000
-Failed requests:        89
-
-   (Connect: 0, Receive: 0, Length: 89, Exceptions: 0)
-   ```
-```
-Non-2xx responses:      49911
-Total transferred:      30994731 bytes
-HTML transferred:       22260306 bytes
-Requests per second:    153.10 [#/sec] (mean)
-Time per request:       653.168 [ms] (mean)
-Time per request:       6.532 [ms] (mean, across all concurrent requests)
-Transfer rate:          92.68 [Kbytes/sec] received
+Failed requests:        0
+Total transferred:      9000000 bytes
+HTML transferred:       1800000 bytes
+Requests per second:    446.71 [#/sec] (mean)
+Time per request:       11.193 [ms] (mean)
+Time per request:       2.239 [ms] (mean, across all concurrent requests)
+Transfer rate:          78.52 [Kbytes/sec] received
 Connection Times (ms)
 ```
 
 ```               
                min   mean[+/-sd]    median      max              
-Connect:        0       1  66.7        0        14904<\td>
+Connect:        0       5  226.8        0        16152
 
-Processing:     4    501 4074.6        18       109636
+Processing:     1       6  40.6         4       2524
 
-Waiting:        0    357 1701.6        18       106511
+Waiting:        1       6 39.8          4       2524
 
-Total:          5    502 4075.4        19       109644
+Total:          11      11 230.8        4       16167
 ```
 ```
 Percentage of the requests served within a certain time (ms)
-  50%     19
-  66%     22
-  75%     25
-  80%     30
-  90%   1048
-  95%   1455
-  98%   3479
-  99%   7294
- 100%  109644 (longest request)
- ```
+  50%      4
+  66%      4
+  75%      5
+  80%      5
+  90%      6
+  95%      8
+  98%     11
+  99%     18
+ 100%  16167 (longest request)
+
