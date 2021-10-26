@@ -1,23 +1,19 @@
 import logging
 import mimetypes
 import os
-import re
-import time
 from datetime import datetime
 import multiprocessing as mp
-import threading as th
 from optparse import OptionParser
 from urllib.parse import unquote
 import asyncore_epoll
 from sys import platform
 from email.parser import Parser
 
-
 op = OptionParser()
 op.add_option("-w", "--worker", action="store", type=str, help="Setup worker count",
-                    default=10)
+              default=10)
 op.add_option("-g", "--logdir", action="store", type=str, help="From where will be processed logs",
-                    default='.')
+              default='.')
 op.add_option("-l", "--log", action="store", type=str, help="Log filename.", default="app_webserver.log")
 (opts, args) = op.parse_args()
 
@@ -113,19 +109,17 @@ class EchoHandler(asyncore_epoll.dispatcher):
     def handle_write(self):
         log.debug("handle_write")
         message = self._processor(self.buffer)
-        content_length = len(message)
         if message:
             while len(message) != 0:
                 sent = self.send(message)
                 message = message[sent:]
             log.debug("sent data")
-
-        else:
-            log.debug("nothing to send")
-        if len(message) == 0:
             self.is_writable = False
             self.is_readable = True
             self.handle_close()
+
+        else:
+            log.debug("nothing to send")
 
     def handle_close(self):
         log.debug("handle_close")
@@ -156,10 +150,10 @@ class EchoHandler(asyncore_epoll.dispatcher):
         except Exception as e:
             if hasattr(e, 'status'):
                 err = HTTPError(e.status, e.reason, e.body, date, 'Error')
-                logging.error("ERROR Occured status - {}, reason - {}, date - {}, host - {}".format(e.status,
-                                                                                                    e.reason,
-                                                                                                    date,
-                                                                                                    'Error'))
+                logging.error("ERROR Occurred status - {}, reason - {}, date - {}, host - {}".format(e.status,
+                                                                                                     e.reason,
+                                                                                                     date,
+                                                                                                     'Error'))
             else:
                 err = HTTPError('405', 'Method Not Implemented', 'Request Error', date)
                 logging.error(
@@ -265,7 +259,6 @@ def http_parse_request_line(req):
     return method.lower(), target, ver
 
 
-
 def http_status_error_response(method, target, ver, path, ext):
     """
     Error validator
@@ -311,7 +304,7 @@ class HTTPError(Exception):
 
 class EchoServer(asyncore_epoll.dispatcher):
     _allow_reuse_port = True
-    request_queue_size = 5
+    request_queue_size = 100
 
     def __init__(self, address, handlerClass=EchoHandler):
         self.address = address
