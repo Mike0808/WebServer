@@ -1,9 +1,8 @@
 # Simple web server
 
-
-
 In this Simple Web Server implements epoll(linux) and kqueue(BSD, Mac OS) methods of
-I/O events for TCP Socket
+I/O events for TCP Socket.
+For this task taked third-party model asyncore_epoll with little bit changes for SO_REUSEPORT insted SO_REUSEADDR
 
 
 ## Results of load testing:
